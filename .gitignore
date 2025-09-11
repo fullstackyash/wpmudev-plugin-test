@@ -1,0 +1,10 @@
+node_modules/
+vendor/
+
+# Build artifacts
+assets/js/*.min.js
+assets/js/*.min.js.map
+assets/js/*.asset.php
+assets/css/*.min.css
+assets/css/*.min.css.map
+build/
