@@ -1,25 +1,17 @@
 module.exports = function (grunt) {
 	require('load-grunt-tasks')(grunt)
 
+	
+
 	const copyFiles = [
+		'assets/**',
 		'app/**',
 		'core/**',
 		'languages/**',
 		'uninstall.php',
 		'wpmudev-plugin-test.php',
-		'!vendor/**',
+		'vendor/**',
 		'!**/*.map',
-		'QUESTIONS.md',
-		'README.md',
-		'composer.json',
-		'package.json',
-		'Gruntfile.js',
-		'gulpfile.js',
-		'webpack.config.js',
-		'phpcs.ruleset.xml',
-		'phpunit.xml.dist',
-		'src/**',
-		'tests/**',
 	]
 
     const excludeCopyFilesPro = copyFiles
