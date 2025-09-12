@@ -8,3 +8,14 @@ assets/js/*.asset.php
 assets/css/*.min.css
 assets/css/*.min.css.map
 build/
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+
