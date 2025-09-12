@@ -4,15 +4,50 @@ module.exports = function (grunt) {
 	
 
 	const copyFiles = [
-		'assets/**',
-		'app/**',
-		'core/**',
-		'languages/**',
-		'uninstall.php',
-		'wpmudev-plugin-test.php',
-		'vendor/**',
-		'!**/*.map',
-	]
+        'app/**',
+        'core/**',
+        'languages/**',
+        'assets/**',
+        'wpmudev-plugin-test.php',
+        'README.md',
+        'composer.json',
+        // Include only specific Google API services
+        'vendor/autoload.php',
+        'vendor/composer/**',
+        'vendor/google/apiclient/**',
+        'vendor/google/auth/**',
+        'vendor/google/apiclient-services/autoload.php',
+        'vendor/google/apiclient-services/composer.json',
+        'vendor/google/apiclient-services/src/Drive/**',
+        'vendor/google/apiclient-services/src/Drive.php',
+        // Include required dependencies
+        'vendor/firebase/**',
+        'vendor/guzzlehttp/**',
+        'vendor/monolog/**',
+        'vendor/phpseclib/**',
+        'vendor/psr/**',
+        // Exclude everything else
+        '!vendor/google/apiclient-services/src/*',
+        '!vendor/google/apiclient-services/src/**',
+        // Re-include what we need
+        'vendor/google/apiclient-services/src/Drive/**',
+        'vendor/google/apiclient-services/src/Drive.php',
+        // Exclude dev dependencies and unnecessary files
+        '!src/**',
+        '!tests/**',
+        '!node_modules/**',
+		'!**/*.md',
+        '!**/*.dist',
+        '!**/*.map',
+        '!**/composer.lock',
+        '!**/package*.json',
+        '!**/Gruntfile.js',
+        '!**/webpack.config.js',
+        '!**/phpcs.ruleset.xml',
+        '!**/phpunit.xml*',
+        '!**/.git*',
+        '!**/.DS_Store',
+    ]
 
     const excludeCopyFilesPro = copyFiles
 		.slice(0)

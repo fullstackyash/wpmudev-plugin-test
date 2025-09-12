@@ -36,6 +36,11 @@
 		]
 	},
 	"autoload": {
-        "classmap": ["core/", "app/"]
+        "classmap": ["core/", "app/"],
+		"exclude-from-classmap": [
+			"vendor/google/apiclient-services/src/*/",
+			"!vendor/google/apiclient-services/src/Drive/",
+			"!vendor/google/apiclient-services/src/Drive.php"
+		]
 	}
 }
