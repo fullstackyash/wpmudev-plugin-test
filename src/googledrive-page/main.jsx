@@ -98,7 +98,7 @@ const WPMUDEV_DriveTest = () => {
                         </div>
 
                         <div className="sui-box-settings-row">
-                            <span>{__('Please use this URL <em>{window.wpmudevDriveTest.redirectUri}</em> in your Google API\'s <strong>Authorized redirect URIs</strong> field.', 'wpmudev-plugin-test')}</span>
+                            <span>{__('Please use this URL ', 'wpmudev-plugin-test')}<em>{window.wpmudevDriveTest.redirectUri}</em> {__('in your Google API\'s ', 'wpmudev-plugin-test')}<strong>{__('Authorized redirect URIs', 'wpmudev-plugin-test')}</strong> {__('field.', 'wpmudev-plugin-test')}</span>
                         </div>
 
                         <div className="sui-box-settings-row">
