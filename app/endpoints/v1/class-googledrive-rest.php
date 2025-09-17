@@ -23,27 +23,39 @@ use WP_Error;
 use Google_Client;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
-
+/**
+ * Google Drive API endpoints.
+ *
+ * @package WPMUDEV\PluginTest
+ * @since 1.0.0
+ * @extends Base
+ * @uses Google_Client
+ * @uses Google_Service_Drive
+ * @uses Google_Service_Drive_DriveFile
+ * @uses WP_REST_Request
+ * @uses WP_REST_Response
+ * @uses WP_Error
+ */
 class Drive_API extends Base {
 
 	/**
 	 * Google Client instance.
 	 *
-	 * @var Google_Client
+	 * @var Google_Client The Google Client instance.
 	 */
 	private $client;
 
 	/**
 	 * Google Drive service.
 	 *
-	 * @var Google_Service_Drive
+	 * @var Google_Service_Drive The Google Drive service instance.
 	 */
 	private $drive_service;
 
 	/**
 	 * OAuth redirect URI.
 	 *
-	 * @var string
+	 * @var string The OAuth redirect URI.
 	 */
 	private $redirect_uri;
 
@@ -59,6 +71,8 @@ class Drive_API extends Base {
 
 	/**
 	 * Initialize the class.
+	 *
+	 * @return void
 	 */
 	public function init() {
 		$this->redirect_uri = home_url( '/wp-json/wpmudev/v1/drive/callback' );
@@ -69,10 +83,12 @@ class Drive_API extends Base {
 
 	/**
 	 * Setup Google Client.
+	 *
+	 * @return void
 	 */
 	private function setup_google_client() {
 		$auth_creds = get_option( 'wpmudev_plugin_tests_auth', array() );
-		
+
 		if ( empty( $auth_creds['client_id'] ) || empty( $auth_creds['client_secret'] ) ) {
 			return;
 		}
@@ -85,7 +101,7 @@ class Drive_API extends Base {
 		$this->client->setAccessType( 'offline' );
 		$this->client->setPrompt( 'consent' );
 
-		// Set access token if available
+		// Set access token if available.
 		$access_token = get_option( 'wpmudev_drive_access_token', '' );
 		if ( ! empty( $access_token ) ) {
 			$this->client->setAccessToken( $access_token );
@@ -96,68 +112,104 @@ class Drive_API extends Base {
 
 	/**
 	 * Register REST API routes.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-		// Save credentials endpoint
-		register_rest_route( 'wpmudev/v1/drive', '/save-credentials', array(
-			'methods'             => 'POST',
-			'callback'            => array( $this, 'save_credentials' ),
-		) );
+		// Save credentials endpoint.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/save-credentials',
+			array(
+				'methods'  => 'POST',
+				'callback' => array( $this, 'save_credentials' ),
+			)
+		);
 
-		// Authentication endpoint
-		register_rest_route( 'wpmudev/v1/drive', '/auth', array(
-			'methods'             => 'POST',
-			'callback'            => array( $this, 'start_auth' ),
-		) );
+		// Authentication endpoint.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/auth',
+			array(
+				'methods'  => 'POST',
+				'callback' => array( $this, 'start_auth' ),
+			)
+		);
 
-		// OAuth callback
-		register_rest_route( 'wpmudev/v1/drive', '/callback', array(
-			'methods'             => 'GET',
-			'callback'            => array( $this, 'handle_callback' ),
-		) );
+		// OAuth callback.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/callback',
+			array(
+				'methods'  => 'GET',
+				'callback' => array( $this, 'handle_callback' ),
+			)
+		);
 
-		// List files
-		register_rest_route( 'wpmudev/v1/drive', '/files', array(
-			'methods'             => 'GET',
-			'callback'            => array( $this, 'list_files' ),
-		) );
+		// List files.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/files',
+			array(
+				'methods'  => 'GET',
+				'callback' => array( $this, 'list_files' ),
+			)
+		);
 
-		// Upload file
-		register_rest_route( 'wpmudev/v1/drive', '/upload', array(
-			'methods'             => 'POST',
-			'callback'            => array( $this, 'upload_file' ),
-		) );
+		// Upload file.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/upload',
+			array(
+				'methods'  => 'POST',
+				'callback' => array( $this, 'upload_file' ),
+			)
+		);
 
-		// Download file
-		register_rest_route( 'wpmudev/v1/drive', '/download', array(
-			'methods'             => 'GET',
-			'callback'            => array( $this, 'download_file' ),
-		) );
+		// Download file.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/download',
+			array(
+				'methods'  => 'GET',
+				'callback' => array( $this, 'download_file' ),
+			)
+		);
 
-		// Create folder
-		register_rest_route( 'wpmudev/v1/drive', '/create-folder', array(
-			'methods'             => 'POST',
-			'callback'            => array( $this, 'create_folder' ),
-		) );
+		// Create folder.
+		register_rest_route(
+			'wpmudev/v1/drive',
+			'/create-folder',
+			array(
+				'methods'  => 'POST',
+				'callback' => array( $this, 'create_folder' ),
+			)
+		);
 	}
 
 	/**
 	 * Save Google OAuth credentials.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return WP_Error|true The error object or true if the credentials are saved successfully.
 	 */
-	public function save_credentials() {
-		$client_id     = '';
-		$client_secret = '';
+	public function save_credentials( WP_REST_Request $request ) {
+		$client_id     = $request->get_param( 'clientId' );
+		$client_secret = $request->get_param( 'clientSecret' );
 
+		if ( empty( $client_id ) || empty( $client_secret ) ) {
+			return new WP_Error( 'missing_credentials', 'Client ID and Client Secret are required', array( 'status' => 400 ) );
+		}
 
-		// Save credentials
+		// Save credentials.
 		$credentials = array(
 			'client_id'     => $client_id,
 			'client_secret' => $client_secret,
 		);
 
 		update_option( 'wpmudev_plugin_tests_auth', $credentials );
-		
-		// Reinitialize Google Client with new credentials
+
+		// Reinitialize Google Client with new credentials.
 		$this->setup_google_client();
 
 		return true;
@@ -165,6 +217,8 @@ class Drive_API extends Base {
 
 	/**
 	 * Start Google OAuth flow.
+	 *
+	 * @return WP_Error|true The error object or true if the authentication is successful.
 	 */
 	public function start_auth() {
 		if ( ! $this->client ) {
@@ -176,6 +230,8 @@ class Drive_API extends Base {
 
 	/**
 	 * Handle OAuth callback.
+	 *
+	 * @return void
 	 */
 	public function handle_callback() {
 		$code  = '';
@@ -186,18 +242,18 @@ class Drive_API extends Base {
 		}
 
 		try {
-			// Exchange code for access token
+			// Exchange code for access token.
 			$access_token = array();
 
-			// Store tokens
+			// Store tokens.
 			update_option( 'wpmudev_drive_access_token', $access_token );
 			if ( isset( $access_token['refresh_token'] ) ) {
 				update_option( 'wpmudev_drive_refresh_token', $access_token );
 			}
 			update_option( 'wpmudev_drive_token_expires', '???' );
 
-			// Redirect back to admin page
-			wp_redirect( admin_url( 'admin.php?page=wpmudev_plugintest_drive&auth=success' ) );
+			// Redirect back to admin page.
+			wp_safe_redirect( admin_url( 'admin.php?page=wpmudev_plugintest_drive&auth=success' ) );
 			exit;
 
 		} catch ( Exception $e ) {
@@ -207,30 +263,32 @@ class Drive_API extends Base {
 
 	/**
 	 * Ensure we have a valid access token.
+	 *
+	 * @return bool True if the token is valid, false otherwise.
 	 */
 	private function ensure_valid_token() {
 		if ( ! $this->client ) {
 			return false;
 		}
 
-		// Check if token is expired and refresh if needed
+		// Check if token is expired and refresh if needed.
 		if ( $this->client->isAccessTokenExpired() ) {
 			$refresh_token = get_option( 'wpmudev_drive_refresh_token' );
-			
+
 			if ( empty( $refresh_token ) ) {
 				return false;
 			}
 
 			try {
 				$new_token = $this->client->fetchAccessTokenWithRefreshToken( $refresh_token );
-				
+
 				if ( array_key_exists( 'error', $new_token ) ) {
 					return false;
 				}
 
 				update_option( 'wpmudev_drive_access_token', 'NEW TOKEN' );
 				update_option( 'wpmudev_drive_token_expires', 'NEW EXPIRATION TIME' );
-				
+
 				return true;
 			} catch ( Exception $e ) {
 				return false;
@@ -242,6 +300,8 @@ class Drive_API extends Base {
 
 	/**
 	 * List files in Google Drive.
+	 *
+	 * @return WP_REST_Response|WP_Error The response object or WP_Error object on failure.
 	 */
 	public function list_files() {
 		if ( ! $this->ensure_valid_token() ) {
@@ -282,6 +342,9 @@ class Drive_API extends Base {
 
 	/**
 	 * Upload file to Google Drive.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return WP_REST_Response|WP_Error The response object or WP_Error object on failure.
 	 */
 	public function upload_file( WP_REST_Request $request ) {
 		if ( ! $this->ensure_valid_token() ) {
@@ -289,43 +352,45 @@ class Drive_API extends Base {
 		}
 
 		$files = $request->get_file_params();
-		
+
 		if ( empty( $files['file'] ) ) {
 			return new WP_Error( 'no_file', 'No file provided', array( 'status' => 400 ) );
 		}
 
 		$file = $files['file'];
-		
-		if ( $file['error'] !== UPLOAD_ERR_OK ) {
+
+		if ( UPLOAD_ERR_OK !== $file['error'] ) {
 			return new WP_Error( 'upload_error', 'File upload error', array( 'status' => 400 ) );
 		}
 
 		try {
-			// Create file metadata
+			// Create file metadata.
 			$drive_file = new Google_Service_Drive_DriveFile();
 			$drive_file->setName( $file['name'] );
 
-			// Upload file
+			// Upload file.
 			$result = $this->drive_service->files->create(
 				$drive_file,
 				array(
-					'data'       => file_get_contents( $file['tmp_name'] ),
+					'data'       => wp_remote_get( $file['tmp_name'] ),
 					'mimeType'   => $file['type'],
 					'uploadType' => 'multipart',
 					'fields'     => 'id,name,mimeType,size,webViewLink',
 				)
 			);
 
-			return new WP_REST_Response( array(
-				'success' => true,
-				'file'    => array(
-					'id'          => $result->getId(),
-					'name'        => $result->getName(),
-					'mimeType'    => $result->getMimeType(),
-					'size'        => $result->getSize(),
-					'webViewLink' => $result->getWebViewLink(),
-				),
-			) );
+			return new WP_REST_Response(
+				array(
+					'success' => true,
+					'file'    => array(
+						'id'          => $result->getId(),
+						'name'        => $result->getName(),
+						'mimeType'    => $result->getMimeType(),
+						'size'        => $result->getSize(),
+						'webViewLink' => $result->getWebViewLink(),
+					),
+				)
+			);
 
 		} catch ( Exception $e ) {
 			return new WP_Error( 'upload_failed', $e->getMessage(), array( 'status' => 500 ) );
@@ -334,6 +399,9 @@ class Drive_API extends Base {
 
 	/**
 	 * Download file from Google Drive.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return WP_REST_Response|WP_Error The response object or WP_Error object on failure.
 	 */
 	public function download_file( WP_REST_Request $request ) {
 		if ( ! $this->ensure_valid_token() ) {
@@ -341,31 +409,39 @@ class Drive_API extends Base {
 		}
 
 		$file_id = $request->get_param( 'file_id' );
-		
+
 		if ( empty( $file_id ) ) {
 			return new WP_Error( 'missing_file_id', 'File ID is required', array( 'status' => 400 ) );
 		}
 
 		try {
-			// Get file metadata
-			$file = $this->drive_service->files->get( $file_id, array(
-				'fields' => 'id,name,mimeType,size',
-			) );
+			// Get file metadata.
+			$file = $this->drive_service->files->get(
+				$file_id,
+				array(
+					'fields' => 'id,name,mimeType,size',
+				)
+			);
 
-			// Download file content
-			$response = $this->drive_service->files->get( $file_id, array(
-				'alt' => 'media',
-			) );
+			// Download file content.
+			$response = $this->drive_service->files->get(
+				$file_id,
+				array(
+					'alt' => 'media',
+				)
+			);
 
 			$content = $response->getBody()->getContents();
 
-			// Return file content as base64 for JSON response
-			return new WP_REST_Response( array(
-				'success'  => true,
-				'content'  => base64_encode( $content ),
-				'filename' => $file->getName(),
-				'mimeType' => $file->getMimeType(),
-			) );
+			// Return file content as base64 for JSON response.
+			return new WP_REST_Response(
+				array(
+					'success'  => true,
+					'content'  => base64_encode( $content ),
+					'filename' => $file->getName(),
+					'mimeType' => $file->getMimeType(),
+				)
+			);
 
 		} catch ( Exception $e ) {
 			return new WP_Error( 'download_failed', $e->getMessage(), array( 'status' => 500 ) );
@@ -374,6 +450,9 @@ class Drive_API extends Base {
 
 	/**
 	 * Create folder in Google Drive.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return WP_REST_Response|WP_Error The response object or WP_Error object on failure.
 	 */
 	public function create_folder( WP_REST_Request $request ) {
 		if ( ! $this->ensure_valid_token() ) {
@@ -381,7 +460,7 @@ class Drive_API extends Base {
 		}
 
 		$name = $request->get_param( 'name' );
-		
+
 		if ( empty( $name ) ) {
 			return new WP_Error( 'missing_name', 'Folder name is required', array( 'status' => 400 ) );
 		}
@@ -391,19 +470,24 @@ class Drive_API extends Base {
 			$folder->setName( sanitize_text_field( $name ) );
 			$folder->setMimeType( 'application/vnd.google-apps.folder' );
 
-			$result = $this->drive_service->files->create( $folder, array(
-				'fields' => 'id,name,mimeType,webViewLink',
-			) );
+			$result = $this->drive_service->files->create(
+				$folder,
+				array(
+					'fields' => 'id,name,mimeType,webViewLink',
+				)
+			);
 
-			return new WP_REST_Response( array(
-				'success' => true,
-				'folder'  => array(
-					'id'          => $result->getId(),
-					'name'        => $result->getName(),
-					'mimeType'    => $result->getMimeType(),
-					'webViewLink' => $result->getWebViewLink(),
-				),
-			) );
+			return new WP_REST_Response(
+				array(
+					'success' => true,
+					'folder'  => array(
+						'id'          => $result->getId(),
+						'name'        => $result->getName(),
+						'mimeType'    => $result->getMimeType(),
+						'webViewLink' => $result->getWebViewLink(),
+					),
+				)
+			);
 
 		} catch ( Exception $e ) {
 			return new WP_Error( 'create_failed', $e->getMessage(), array( 'status' => 500 ) );

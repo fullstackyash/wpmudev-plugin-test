@@ -20,6 +20,8 @@ const WPMUDEV_DriveTest = () => {
         clientSecret: ''
     });
 
+    const { restUrl, restEndpointSave } = window.wpmudevDriveTest;
+
     useEffect(() => {
     }, [isAuthenticated]);
 
@@ -29,6 +31,19 @@ const WPMUDEV_DriveTest = () => {
     };
 
     const handleSaveCredentials = async () => {
+        setIsLoading(true);
+        //alert(window.wpmudevDriveTest.restEndpointSave);
+        console.log(credentials);
+        try {
+            const response = await fetch(restUrl + restEndpointSave, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(credentials)
+            });
+        } catch (error) {
+        }
     };
 
     const handleAuth = async () => {

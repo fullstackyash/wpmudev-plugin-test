@@ -17,7 +17,11 @@ namespace WPMUDEV\PluginTest\App\Admin_Pages;
 defined( 'WPINC' ) || die;
 
 use WPMUDEV\PluginTest\Base;
-
+/**
+ * Google Drive admin page.
+ *
+ * @package WPMUDEV\PluginTest
+ */
 class Google_Drive extends Base {
 	/**
 	 * The page title.
@@ -75,7 +79,6 @@ class Google_Drive extends Base {
 	 *
 	 * @return void
 	 * @since 1.0.0
-	 *
 	 */
 	public function init() {
 		$this->page_title     = __( 'Google Drive Test', 'wpmudev-plugin-test' );
@@ -89,6 +92,11 @@ class Google_Drive extends Base {
 		add_filter( 'admin_body_class', array( $this, 'admin_body_classes' ) );
 	}
 
+	/**
+	 * Registers the admin page.
+	 *
+	 * @return void
+	 */
 	public function register_admin_page() {
 		$page = add_menu_page(
 			'Google Drive Test',
@@ -153,6 +161,7 @@ class Google_Drive extends Base {
 				'authStatus'           => $this->get_auth_status(),
 				'redirectUri'          => home_url( '/wp-json/wpmudev/v1/drive/callback' ),
 				'hasCredentials'       => ! empty( $this->creds['client_id'] ) && ! empty( $this->creds['client_secret'] ),
+				'restUrl'              => rest_url(),
 			),
 		);
 	}
@@ -165,14 +174,13 @@ class Google_Drive extends Base {
 	private function get_auth_status() {
 		$access_token = get_option( 'wpmudev_drive_access_token', '' );
 		$expires_at   = get_option( 'wpmudev_drive_token_expires', 0 );
-		
 		return ! empty( $access_token ) && time() < $expires_at;
 	}
 
 	/**
 	 * Gets assets data for given key.
 	 *
-	 * @param string $key
+	 * @param string $key The key to get the data for.
 	 *
 	 * @return string|array
 	 */
@@ -238,7 +246,7 @@ class Google_Drive extends Base {
 	/**
 	 * Adds the SUI class on markup body.
 	 *
-	 * @param string $classes
+	 * @param string $classes Space-separated list of CSS classes.
 	 *
 	 * @return string
 	 */
