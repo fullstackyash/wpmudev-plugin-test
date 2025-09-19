@@ -16,8 +16,8 @@ const WPMUDEV_DriveTest = () => {
     const [folderName, setFolderName] = useState('');
     const [notice, setNotice] = useState({ message: '', type: '' });
     const [credentials, setCredentials] = useState({
-        clientId: '',
-        clientSecret: ''
+        clientId: window.wpmudevDriveTest.clientId,
+        clientSecret: window.wpmudevDriveTest.clientSecret
     });
 
     const { restUrl, restEndpointSave } = window.wpmudevDriveTest;

@@ -162,6 +162,8 @@ class Google_Drive extends Base {
 				'redirectUri'          => home_url( '/wp-json/wpmudev/v1/drive/callback' ),
 				'hasCredentials'       => ! empty( $this->creds['client_id'] ) && ! empty( $this->creds['client_secret'] ),
 				'restUrl'              => rest_url(),
+				'clientId'             => $this->creds['client_id'],
+				'clientSecret'         => $this->creds['client_secret'],
 			),
 		);
 	}
