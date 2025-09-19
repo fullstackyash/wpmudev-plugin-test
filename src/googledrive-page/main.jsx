@@ -38,11 +38,26 @@ const WPMUDEV_DriveTest = () => {
             const response = await fetch(restUrl + restEndpointSave, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': window.wpmudevDriveTest.nonce
                 },
                 body: JSON.stringify(credentials)
             });
+
+            const data = await response.json();
+            console.log('data = ' + data);
+            
+            if (data.success) {
+                setHasCredentials(true);
+                setShowCredentials(false);
+                showNotice(__('Credentials saved successfully', 'wpmudev-plugin-test'), 'success');
+            } else {
+                showNotice(data.message || __('Failed to save credentials', 'wpmudev-plugin-test'), 'error');
+            }
         } catch (error) {
+            showNotice(error.message || __('Failed to save credentials', 'wpmudev-plugin-test'), 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 

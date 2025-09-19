@@ -194,6 +194,12 @@ class Drive_API extends Base {
 	 * @return WP_Error|true The error object or true if the credentials are saved successfully.
 	 */
 	public function save_credentials( WP_REST_Request $request ) {
+
+		// Nonce check is handled automatically for the X-WP-Nonce header.
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return new WP_Error( 'rest_forbidden', 'You do not have permission.', array( 'status' => 403 ) );
+		}
+
 		$client_id     = $request->get_param( 'clientId' );
 		$client_secret = $request->get_param( 'clientSecret' );
 
@@ -212,7 +218,11 @@ class Drive_API extends Base {
 		// Reinitialize Google Client with new credentials.
 		$this->setup_google_client();
 
-		return true;
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+			)
+		);
 	}
 
 	/**
