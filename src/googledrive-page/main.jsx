@@ -20,7 +20,7 @@ const WPMUDEV_DriveTest = () => {
         clientSecret: window.wpmudevDriveTest.clientSecret
     });
 
-    const { restUrl, restEndpointSave } = window.wpmudevDriveTest;
+    const { restUrl, restEndpointSave, restEndpointAuth } = window.wpmudevDriveTest;
 
     useEffect(() => {
     }, [isAuthenticated]);
@@ -32,8 +32,6 @@ const WPMUDEV_DriveTest = () => {
 
     const handleSaveCredentials = async () => {
         setIsLoading(true);
-        //alert(window.wpmudevDriveTest.restEndpointSave);
-        console.log(credentials);
         try {
             const response = await fetch(restUrl + restEndpointSave, {
                 method: 'POST',
@@ -62,6 +60,50 @@ const WPMUDEV_DriveTest = () => {
     };
 
     const handleAuth = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(restUrl + restEndpointAuth, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': window.wpmudevDriveTest.nonce
+                }
+                
+                
+            });
+            const data = await response.json();
+            if (data.auth_url) {
+                const popup = window.open(data.auth_url, "_blank", "width=500,height=600");
+                // Try to auto-close the popup after authentication by listening for a postMessage from the callback
+                const popupListener = (event) => {
+                    // Optionally, check event.origin if you want to restrict to your domain
+                    if (event.data === 'wpmudev_drive_auth_success') {
+                        if (popup && !popup.closed) {
+                            popup.close();
+                        }
+                        window.removeEventListener('message', popupListener);
+                        window.location.reload();
+                    }
+                };
+                window.addEventListener('message', popupListener);
+
+                // Fallback: if popup is closed manually, reload the page
+                const popupInterval = setInterval(() => {
+                    if (popup.closed) {
+                        clearInterval(popupInterval);
+                        window.removeEventListener('message', popupListener);
+                        window.location.reload();
+                    }
+                }, 500);
+               
+            } else {
+                showNotice(__('No authentication URL returned.', 'wpmudev-plugin-test'), 'error');
+            }
+        } catch (error) {
+            showNotice(error.message || __('Failed to authenticate with Google Drive', 'wpmudev-plugin-test'), 'error');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const loadFiles = async () => {

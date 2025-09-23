@@ -88,6 +88,8 @@ class Drive_API extends Base {
 	 */
 	private function setup_google_client() {
 		$auth_creds = get_option( 'wpmudev_plugin_tests_auth', array() );
+		$user_id    = get_current_user_id();
+		$state      = wp_create_nonce( 'wpmudev_drive_state' ) . '-' . $user_id;
 
 		if ( empty( $auth_creds['client_id'] ) || empty( $auth_creds['client_secret'] ) ) {
 			return;
@@ -100,6 +102,8 @@ class Drive_API extends Base {
 		$this->client->setScopes( $this->scopes );
 		$this->client->setAccessType( 'offline' );
 		$this->client->setPrompt( 'consent' );
+		$this->client->setState( $state );
+		set_transient( 'wpmudev_drive_state_' . $user_id, $state );
 
 		// Set access token if available.
 		$access_token = get_option( 'wpmudev_drive_access_token', '' );
@@ -235,7 +239,7 @@ class Drive_API extends Base {
 			return new WP_Error( 'missing_credentials', 'Google OAuth credentials not configured', array( 'status' => 400 ) );
 		}
 
-		return true;
+		return array( 'auth_url' => $this->client->createAuthUrl( $this->scopes ) );
 	}
 
 	/**
@@ -244,23 +248,37 @@ class Drive_API extends Base {
 	 * @return void
 	 */
 	public function handle_callback() {
-		$code  = '';
-		$state = '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification is not used here because Google OAuth callback cannot provide a WordPress nonce; CSRF protection is handled via the 'state' parameter.
+		$code    = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+		$state   = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
+		$parts   = explode( '-', $state );
+		$user_id = end( $parts );
+
+		// Retrieve the state from the user's session
+		$stored_state = get_transient( 'wpmudev_drive_state_' . $user_id );
+
+		if ( empty( $state ) || $state !== $stored_state ) {
+			wp_die( 'Invalid or missing state.' );
+		}
 
 		if ( empty( $code ) ) {
 			wp_die( 'Authorization code not received' );
 		}
+		delete_transient( 'wpmudev_drive_state_' . get_current_user_id() );
 
 		try {
-			// Exchange code for access token.
-			$access_token = array();
+			$access_token = $this->client->fetchAccessTokenWithAuthCode( $code );
 
-			// Store tokens.
+			if ( isset( $access_token['error'] ) ) {
+				wp_die( 'Failed to get access token: ' . esc_html( $access_token['error_description'] ) );
+			}
+
+			// Store access tokens.
 			update_option( 'wpmudev_drive_access_token', $access_token );
 			if ( isset( $access_token['refresh_token'] ) ) {
-				update_option( 'wpmudev_drive_refresh_token', $access_token );
+				update_option( 'wpmudev_drive_refresh_token', $access_token['refresh_token'] );
 			}
-			update_option( 'wpmudev_drive_token_expires', '???' );
+			update_option( 'wpmudev_drive_token_expires', time() + intval( $access_token['expires_in'] ) );
 
 			// Redirect back to admin page.
 			wp_safe_redirect( admin_url( 'admin.php?page=wpmudev_plugintest_drive&auth=success' ) );
