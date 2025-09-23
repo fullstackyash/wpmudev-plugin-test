@@ -248,13 +248,12 @@ class Drive_API extends Base {
 	 * @return void
 	 */
 	public function handle_callback() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification is not used here because Google OAuth callback cannot provide a WordPress nonce; CSRF protection is handled via the 'state' parameter.
-		$code    = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
-		$state   = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
+		$code    = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification is not used here because Google OAuth callback cannot provide a WordPress nonce; CSRF protection is handled via the 'state' parameter.
+		$state   = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification is not used here because Google OAuth callback cannot provide a WordPress nonce; CSRF protection is handled via the 'state' parameter.
 		$parts   = explode( '-', $state );
 		$user_id = end( $parts );
 
-		// Retrieve the state from the user's session
+		// Retrieve the state from the user's session.
 		$stored_state = get_transient( 'wpmudev_drive_state_' . $user_id );
 
 		if ( empty( $state ) || $state !== $stored_state ) {
