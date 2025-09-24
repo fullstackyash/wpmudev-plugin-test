@@ -394,12 +394,12 @@ class Drive_API extends Base {
 			// Create file metadata.
 			$drive_file = new Google_Service_Drive_DriveFile();
 			$drive_file->setName( $file['name'] );
-
+			
 			// Upload file.
 			$result = $this->drive_service->files->create(
 				$drive_file,
 				array(
-					'data'       => wp_remote_get( $file['tmp_name'] ),
+					'data'       => file_get_contents( $file['tmp_name'] ),
 					'mimeType'   => $file['type'],
 					'uploadType' => 'multipart',
 					'fields'     => 'id,name,mimeType,size,webViewLink',
