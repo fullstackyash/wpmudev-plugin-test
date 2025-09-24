@@ -20,7 +20,7 @@ const WPMUDEV_DriveTest = () => {
         clientSecret: window.wpmudevDriveTest.clientSecret
     });
 
-    const { restUrl, restEndpointSave, restEndpointAuth } = window.wpmudevDriveTest;
+    const { restUrl, restEndpointSave, restEndpointAuth, restEndpointUpload } = window.wpmudevDriveTest;
 
     useEffect(() => {
     }, [isAuthenticated]);
@@ -111,6 +111,29 @@ const WPMUDEV_DriveTest = () => {
     };
 
     const handleUpload = async () => {
+        setIsLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', uploadFile);
+            const response = await fetch(restUrl + restEndpointUpload, {
+                method: 'POST',
+                headers: {
+                    'X-WP-Nonce': window.wpmudevDriveTest.nonce
+                },
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotice(__('File uploaded successfully', 'wpmudev-plugin-test'), 'success');
+            } else {
+                showNotice(data.message || __('Failed to upload file', 'wpmudev-plugin-test'), 'error');
+            }
+        }
+        catch (error) {
+            showNotice(error.message || __('Failed to upload file', 'wpmudev-plugin-test'), 'error');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleDownload = async (fileId, fileName) => {
