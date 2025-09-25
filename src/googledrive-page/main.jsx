@@ -125,6 +125,7 @@ const WPMUDEV_DriveTest = () => {
             const data = await response.json();
             if (data.success) {
                 showNotice(__('File uploaded successfully', 'wpmudev-plugin-test'), 'success');
+                setUploadFile(null);
             } else {
                 showNotice(data.message || __('Failed to upload file', 'wpmudev-plugin-test'), 'error');
             }
