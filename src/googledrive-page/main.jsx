@@ -146,6 +146,7 @@ const WPMUDEV_DriveTest = () => {
             const response = await fetch(restUrl + restEndpointCreate, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-WP-Nonce': window.wpmudevDriveTest.nonce
                 },
                 body: JSON.stringify({
@@ -162,6 +163,8 @@ const WPMUDEV_DriveTest = () => {
         }
         catch (error) {
             showNotice(error.message || __('Failed to create folder', 'wpmudev-plugin-test'), 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
