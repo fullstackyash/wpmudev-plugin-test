@@ -20,7 +20,7 @@ const WPMUDEV_DriveTest = () => {
         clientSecret: window.wpmudevDriveTest.clientSecret
     });
 
-    const { restUrl, restEndpointSave, restEndpointAuth, restEndpointUpload } = window.wpmudevDriveTest;
+    const { restUrl, restEndpointSave, restEndpointAuth, restEndpointUpload, restEndpointCreate } = window.wpmudevDriveTest;
 
     useEffect(() => {
     }, [isAuthenticated]);
@@ -141,6 +141,28 @@ const WPMUDEV_DriveTest = () => {
     };
 
     const handleCreateFolder = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(restUrl + restEndpointCreate, {
+                method: 'POST',
+                headers: {
+                    'X-WP-Nonce': window.wpmudevDriveTest.nonce
+                },
+                body: JSON.stringify({
+                    name: folderName
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotice(__('Folder created successfully', 'wpmudev-plugin-test'), 'success');
+                setFolderName('');
+            } else {
+                showNotice(data.message || __('Failed to create folder', 'wpmudev-plugin-test'), 'error');
+            }
+        }
+        catch (error) {
+            showNotice(error.message || __('Failed to create folder', 'wpmudev-plugin-test'), 'error');
+        }
     };
 
     return (
@@ -295,7 +317,7 @@ const WPMUDEV_DriveTest = () => {
                                 <TextControl
                                     label="Folder Name"
                                     value={folderName}
-                                    onChange={setFolderName}
+                                    onChange={(value) => setFolderName(value)}
                                     placeholder="Enter folder name"
                                 />
                             </div>
